@@ -1,0 +1,9 @@
+- type: replace
+  path: /instance_groups/name=master/networks/0/static_ips?
+  value: [((kubernetes_master_host))]
+- type: replace
+  path: /instance_groups/name=worker/networks/0/static_ips?
+  value: ((kubernetes_worker_hosts))
+- type: replace
+  path: /variables/name=tls-kubernetes/options/alternative_names/-
+  value: ((kubernetes_master_host))
