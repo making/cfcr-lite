@@ -128,9 +128,9 @@ bosh -d cfcr run-errand apply-addons
 ```
 
 ```
-# Macの場合
+# in case of Mac
 sudo route add -net 10.244.0.0/16 192.168.50.6
-# Linuxの場合
+# in case of Linux
 sudo route add -net 10.244.0.0/16 gw 192.168.50.6
 ```
 
@@ -145,6 +145,9 @@ credhub login \
         --ca-cert <(bosh int ./bosh-lite-creds.yml --path /credhub_ca/ca)
 EOF
 chmod +x credhub-login.sh
+```
+
+```
 ./credhub-login.sh
 ```
 
