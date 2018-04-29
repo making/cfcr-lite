@@ -145,6 +145,7 @@ credhub login \
         --ca-cert <(bosh int ./bosh-lite-creds.yml --path /credhub_ca/ca)
 EOF
 chmod +x credhub-login.sh
+./credhub-login.sh
 ```
 
 
