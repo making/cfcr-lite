@@ -3,4 +3,4 @@
   value: 2
 - type: replace
   path: /resource_pools/name=vms/cloud_properties/memory
-  value:  8_192
+  value:  4_096
