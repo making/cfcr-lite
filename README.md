@@ -35,9 +35,9 @@ bosh create-env bosh-deployment/bosh.yml \
     -o ops-files/director-size-lite.yml \
     --vars-store bosh-lite-creds.yml \
     -v director_name=bosh-lite \
-    -v internal_ip=192.168.50.6 \
-    -v internal_gw=192.168.50.1 \
-    -v internal_cidr=192.168.50.0/24 \
+    -v internal_ip=192.168.150.6 \
+    -v internal_gw=192.168.150.1 \
+    -v internal_cidr=192.168.150.0/24 \
     -v outbound_network_name=NatNetwork \
     --state bosh-lite-state.json
 EOF
@@ -53,7 +53,7 @@ cat <<EOF > bosh-lite-env.sh
 export BOSH_CLIENT=admin  
 export BOSH_CLIENT_SECRET=$(bosh int ./bosh-lite-creds.yml --path /admin_password)
 export BOSH_CA_CERT=$(bosh int ./bosh-lite-creds.yml --path /director_ssl/ca)
-export BOSH_ENVIRONMENT=192.168.50.6
+export BOSH_ENVIRONMENT=192.168.150.6
 EOF
 chmod +x bosh-lite-env.sh
 ```
@@ -129,16 +129,16 @@ bosh -d cfcr run-errand apply-addons
 
 ```
 # in case of Mac
-sudo route add -net 10.244.0.0/16 192.168.50.6
+sudo route add -net 10.244.0.0/16 192.168.150.6
 # in case of Linux
-sudo route add -net 10.244.0.0/16 gw 192.168.50.6
+sudo route add -net 10.244.0.0/16 gw 192.168.150.6
 ```
 
 ```
 cat <<EOF > credhub-login.sh
 #!/bin/bash
 credhub login \
-        -s 192.168.50.6:8844 \
+        -s 192.168.150.6:8844 \
         --client-name=credhub-admin \
         --client-secret=$(bosh int ./bosh-lite-creds.yml --path /credhub_admin_client_secret) \
         --ca-cert <(bosh int ./bosh-lite-creds.yml --path /uaa_ssl/ca) \

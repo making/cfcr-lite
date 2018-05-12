@@ -10,8 +10,8 @@ bosh create-env bosh-deployment/bosh.yml \
     -o ops-files/director-size-lite.yml \
     --vars-store bosh-lite-creds.yml \
     -v director_name=bosh-lite \
-    -v internal_ip=192.168.50.6 \
-    -v internal_gw=192.168.50.1 \
-    -v internal_cidr=192.168.50.0/24 \
+    -v internal_ip=192.168.150.6 \
+    -v internal_gw=192.168.150.1 \
+    -v internal_cidr=192.168.150.0/24 \
     -v outbound_network_name=NatNetwork \
     --state bosh-lite-state.json
