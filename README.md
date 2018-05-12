@@ -17,7 +17,7 @@ cat <<EOF > ops-files/director-size-lite.yml
   value: 2
 - type: replace
   path: /resource_pools/name=vms/cloud_properties/memory
-  value:  8_192
+  value:  4_096
 EOF
 ```
 
