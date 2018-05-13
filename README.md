@@ -15,7 +15,7 @@ git commit -m "import CFCR v0.16.0"
 
 ## Install BOSH Lite on VirtualBox
 
-```
+```yaml
 mkdir -p ops-files
 cat <<EOF > ops-files/director-size-lite.yml
 - type: replace
@@ -78,7 +78,7 @@ curl -sL https://github.com/cloudfoundry/cf-deployment/raw/master/iaas-support/b
 
 ## Deploy Kubernetes
 
-```
+```yaml
 cat <<EOF > ops-files/kubernetes-kubo-0.16.0.yml
 - type: replace
   path: /releases/name=kubo?
@@ -90,7 +90,7 @@ cat <<EOF > ops-files/kubernetes-kubo-0.16.0.yml
 EOF
 ```
 
-```
+```yaml
 cat <<EOF > ops-files/kubernetes-static-ips.yml
 - type: replace
   path: /instance_groups/name=master/networks/0/static_ips?
@@ -104,7 +104,7 @@ cat <<EOF > ops-files/kubernetes-static-ips.yml
 EOF
 ```
 
-```
+```yaml
 cat <<EOF > ops-files/kubernetes-single-worker.yml
 - type: replace
   path: /instance_groups/name=worker/instances
@@ -215,7 +215,7 @@ git commit -m "deploy CFCR v0.16.0"
 
 ## Enable UAA
 
-```
+```yaml
 cat <<EOF > ops-files/kubernetes-uaa.yml
 - type: replace
   path: /releases/-
@@ -417,7 +417,7 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
 EOF
 ```
 
-```
+```yaml
 cat <<EOF > specs/uaa-admin.yml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
