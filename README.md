@@ -253,6 +253,7 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
     url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
     sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
 
+# Add UAA job
 - type: replace
   path: /instance_groups/-
   value:
@@ -269,6 +270,10 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
       name: postgres
       properties:
         databases:
+          tls:
+            ca: ((postgres_tls.ca))
+            certificate: ((postgres_tls.certificate))
+            private_key: ((postgres_tls.private_key))
           databases:
           - name: uaa
             tag: uaa
@@ -351,7 +356,8 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
         uaadb:
           port: 5432
           db_scheme: postgresql
-          tls_enabled: false
+          tls_enabled: true
+          skip_ssl_validation: true
           databases:
           - tag: uaa
             name: uaa
@@ -434,6 +440,17 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
   value:
     name: uaa_database_password
     type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: postgres_tls
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: postgres.cfcr.internal
+      alternative_names:
+      - "*.postgres.default.cfcr.bosh"
 EOF
 ```
 
