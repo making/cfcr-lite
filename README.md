@@ -200,6 +200,25 @@ monitoring-influxdb is running at https://10.244.1.92:8443/api/v1/namespaces/kub
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
+## Access Dashboard
+
+
+```
+kubectl proxy
+```
+
+[http://localhost:8001/ui](http://localhost:8001/ui)
+
+![image](https://user-images.githubusercontent.com/106908/39967884-8aeb29d0-56fe-11e8-86df-982150c5f58f.png)
+
+Get a token
+
+```
+kubectl get secrets "$(kubectl get secrets -n kube-system | grep clusterrole-aggregation-controller | awk '{print $1}')" -n kube-system -o json | jq -r .data.token | base64 -D
+```
+
+![image](https://user-images.githubusercontent.com/106908/39967872-48cbffd4-56fe-11e8-9460-e0a38acbe665.png)
+
 ## Commit project
 
 ```
