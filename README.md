@@ -497,7 +497,9 @@ kubectl config set-cluster "${cluster_name}" \
   --embed-certs=true
 
 uaa_url=https://$(bosh -d cfcr vms | grep uaa | awk '{print $4}'):8443
-access_token=`curl -k -s ${uaa_url}/oauth/token \
+
+access_token=`curl -s ${uaa_url}/oauth/token \
+  --cacert <(credhub get -n /bosh-lite/cfcr/uaa_ssl | bosh int - --path=/value/ca) \
   -d grant_type=password \
   -d response_type=id_token \
   -d scope=openid \
