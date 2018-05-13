@@ -1,8 +1,0 @@
-- type: remove
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/username-prefix
-- type: remove
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/groups-claim
-- type: remove
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/groups-prefix
-- type: remove
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/ca
