@@ -518,7 +518,8 @@ kubectl config set-credentials "${user_name}" \
   --auth-provider-arg=client-id=kubernetes \
   --auth-provider-arg=client-secret= \
   --auth-provider-arg=id-token=$(echo $access_token | bosh int - --path /id_token) \
-  --auth-provider-arg=refresh-token=$(echo $access_token | bosh int - --path /refresh_token)
+  --auth-provider-arg=refresh-token=$(echo $access_token | bosh int - --path /refresh_token) \
+  --auth-provider-arg=idp-certificate-authority-data="$(credhub get -n /bosh-lite/cfcr/uaa_ssl | bosh int - --path=/value/ca | base64)"
   
 kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
 
