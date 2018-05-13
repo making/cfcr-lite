@@ -30,6 +30,10 @@
       name: postgres
       properties:
         databases:
+          tls:
+            ca: ((postgres_tls.ca))
+            certificate: ((postgres_tls.certificate))
+            private_key: ((postgres_tls.private_key))
           databases:
           - name: uaa
             tag: uaa
@@ -112,7 +116,8 @@
         uaadb:
           port: 5432
           db_scheme: postgresql
-          tls_enabled: false
+          tls_enabled: true
+          skip_ssl_validation: true
           databases:
           - tag: uaa
             name: uaa
@@ -195,3 +200,14 @@
   value:
     name: uaa_database_password
     type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: postgres_tls
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: postgres.cfcr.internal
+      alternative_names:
+      - "*.postgres.default.cfcr.bosh"
