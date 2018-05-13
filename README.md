@@ -171,7 +171,6 @@ chmod +x credhub-login.sh
 ./credhub-login.sh
 ```
 
-
 ```
 admin_password=$(bosh int <(credhub get -n "/bosh-lite/cfcr/kubo-admin-password" --output-json) --path=/value)
 master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
@@ -190,7 +189,6 @@ kubectl config set-credentials "${user_name}" --token="${admin_password}"
 kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
 kubectl config use-context "${context_name}"
 ```
-
 
 ```
 kubectl cluster-info
@@ -452,10 +450,18 @@ chmod +x deploy-kubernetes.sh
 ```
 
 ```
-./credhub-login.sh
+./deploy-kubernetes.sh
+```
+
+```
+bosh -d cfcr run-errand apply-addons
 ```
 
 ## Access with UAA
+
+```
+./credhub-login.sh
+```
 
 ```
 master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
