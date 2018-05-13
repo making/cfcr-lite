@@ -181,12 +181,16 @@ credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "$
 cluster_name="cfcr"
 user_name="admin"
 context_name="cfcr"
+
 kubectl config set-cluster "${cluster_name}" \
   --server="https://${master_host}:8443" \
   --certificate-authority="${tmp_ca_file}" \
   --embed-certs=true
+
 kubectl config set-credentials "${user_name}" --token="${admin_password}"
+
 kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
+
 kubectl config use-context "${context_name}"
 ```
 
@@ -249,7 +253,6 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
     url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
     sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
 
-# Add UAA job
 - type: replace
   path: /instance_groups/-
   value:
@@ -491,6 +494,7 @@ credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "$
 cluster_name="cfcr"
 user_name="uaa-admin"
 context_name="cfcr-uaa"
+
 kubectl config set-cluster "${cluster_name}" \
   --server="https://${master_host}:8443" \
   --certificate-authority="${tmp_ca_file}" \
@@ -515,7 +519,8 @@ kubectl config set-credentials "${user_name}" \
   --auth-provider-arg=client-secret= \
   --auth-provider-arg=id-token=$(echo $access_token | bosh int - --path /id_token) \
   --auth-provider-arg=refresh-token=$(echo $access_token | bosh int - --path /refresh_token)
-
+  
 kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
+
 kubectl config use-context "${context_name}"
 ```
