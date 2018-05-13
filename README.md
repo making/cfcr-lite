@@ -524,3 +524,10 @@ kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user=
 
 kubectl config use-context "${context_name}"
 ```
+
+## Commit project
+
+```
+git add -A
+git commit -m "add UAA"
+```
