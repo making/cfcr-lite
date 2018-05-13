@@ -172,11 +172,11 @@ chmod +x credhub-login.sh
 ```
 
 ```
-admin_password=$(bosh int <(credhub get -n "/bosh-lite/cfcr/kubo-admin-password" --output-json) --path=/value)
+admin_password=$(credhub get -n /bosh-lite/cfcr/kubo-admin-password | bosh int - --path=/value)
 master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
 
 tmp_ca_file="$(mktemp)"
-bosh int <(credhub get -n "/bosh-lite/cfcr/tls-kubernetes" --output-json) --path=/value/ca > "${tmp_ca_file}"
+credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "${tmp_ca_file}"
 
 cluster_name="cfcr"
 user_name="admin"
@@ -467,7 +467,7 @@ bosh -d cfcr run-errand apply-addons
 master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
 
 tmp_ca_file="$(mktemp)"
-bosh int <(credhub get -n "/bosh-lite/cfcr/tls-kubernetes" --output-json) --path=/value/ca > "${tmp_ca_file}"
+credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "${tmp_ca_file}"
 
 cluster_name="cfcr"
 user_name="uaa-admin"
@@ -485,15 +485,15 @@ access_token=`curl -k -s ${uaa_url}/oauth/token \
   -d client_id=kubernetes \
   -d client_secret= \
   -d username=admin \
-  -d password=$(credhub get -n /bosh-lite/cfcr/uaa_admin_password -j | jq -r .value)`
+  -d password=$(credhub get -n /bosh-lite/cfcr/uaa_admin_password | bosh int - --path /value)`
 
 kubectl config set-credentials "${user_name}" \
   --auth-provider=oidc \
   --auth-provider-arg=idp-issuer-url=${uaa_url}/oauth/token \
   --auth-provider-arg=client-id=kubernetes \
   --auth-provider-arg=client-secret= \
-  --auth-provider-arg=id-token=$(echo $access_token | jq -r .id_token) \
-  --auth-provider-arg=refresh-token=$(echo $access_token | jq -r .refresh_token)
+  --auth-provider-arg=id-token=$(echo $access_token | bosh int - --path /id_token) \
+  --auth-provider-arg=refresh-token=$(echo $access_token | bosh int - --path /refresh_token)
 
 kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
 kubectl config use-context "${context_name}"
