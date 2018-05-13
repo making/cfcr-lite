@@ -1,0 +1,197 @@
+- type: replace
+  path: /releases/-
+  value:
+    name: uaa
+    version: "57.1"
+    url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=57.1
+    sha1: b96e5965e890d9cdd6ad96890cdaad719c368c31
+- type: replace
+  path: /releases/-
+  value:
+    name: postgres
+    version: 28
+    url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
+    sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
+
+# Add UAA job
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: postgres
+    instances: 1
+    azs: [z1]
+    networks:
+    - name: default
+    stemcell: trusty
+    vm_type: small
+    persistent_disk: 1024
+    jobs:
+    - release: postgres
+      name: postgres
+      properties:
+        databases:
+          databases:
+          - name: uaa
+            tag: uaa
+          db_scheme: postgres
+          port: 5432
+          roles:
+          - name: uaa
+            password: ((uaa_database_password))
+            tag: admin
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: uaa
+    instances: 1
+    networks:
+    - name: default
+      static_ips: [((kubernetes_uaa_host))]
+    azs: [z1,z2,z3]
+    stemcell: trusty
+    vm_type: small
+    jobs:
+    - name: uaa
+      release: uaa
+      properties:
+        encryption:
+          active_key_label: default_key
+          encryption_keys:
+            - label: default_key
+              passphrase: ((uaa_default_encryption_passphrase))
+        login:
+          saml:
+            activeKeyId: key-1
+            keys:
+              key-1:
+                key: "((uaa_login_saml.private_key))"
+                certificate: "((uaa_login_saml.certificate))"
+                passphrase: ""
+        uaa:
+          url: "https://((kubernetes_uaa_host)):8443"
+          catalina_opts: -Djava.security.egd=file:/dev/./urandom
+          sslPrivateKey: ((uaa_ssl.private_key))
+          sslCertificate: ((uaa_ssl.certificate))
+          jwt:
+            revocable: true
+            policy:
+              active_key_id: key-1
+              keys:
+                key-1:
+                  signingKey: "((uaa_jwt_signing_key.private_key))"
+          logging_level: INFO
+          scim:
+            users:
+            - name: admin
+              password: ((uaa_admin_password))
+              groups:
+              - openid
+              - scim.read
+              - scim.write
+          admin:
+            client_secret: "((uaa_admin_client_secret))"
+          login:
+            client_secret: "((uaa_login_client_secret))"
+          clients:
+            kubernetes:
+              override: true
+              authorized-grant-types: password,refresh_token
+              scope: openid
+              authorities: uaa.none
+              access-token-validity: 86400 # 1 day
+              refresh-token-validity: 604800 # 7 days
+              secret: ""
+          zones:
+            internal:
+              hostnames: []
+        login:
+          saml:
+            serviceProviderKey: ((uaa_service_provider_ssl.private_key))
+            serviceProviderKeyPassword: ""
+            serviceProviderCertificate: ((uaa_service_provider_ssl.certificate))
+        uaadb:
+          port: 5432
+          db_scheme: postgresql
+          tls_enabled: false
+          databases:
+          - tag: uaa
+            name: uaa
+          roles:
+          - name: uaa
+            password: ((uaa_database_password))
+            tag: admin
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc?
+  value:
+    issuer-url: "https://((kubernetes_uaa_host)):8443/oauth/token"
+    client-id: kubernetes
+    username-claim: email
+    ca: ((uaa_ssl.ca))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_default_encryption_passphrase
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_jwt_signing_key
+    type: rsa
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_admin_password
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_admin_client_secret
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_login_client_secret
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_ssl
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa.cfcr.internal
+      alternative_names:
+      - ((kubernetes_uaa_host))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_login_saml
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa_login_saml
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_service_provider_ssl
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa.cfcr.internal
+      alternative_names:
+      - ((kubernetes_uaa_host))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_database_password
+    type: password

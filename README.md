@@ -1,3 +1,7 @@
+# Deploy CFCR on BOSH Lite
+
+## Initialize a project
+
 ```
 git init
 git submodule add git@github.com:cloudfoundry/bosh-deployment.git
@@ -8,6 +12,8 @@ cd ..
 git add -A
 git commit -m "import CFCR v0.16.0"
 ```
+
+## Install BOSH Lite on VirtualBox
 
 ```
 mkdir -p ops-files
@@ -70,6 +76,7 @@ bosh upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-tru
 curl -sL https://github.com/cloudfoundry/cf-deployment/raw/master/iaas-support/bosh-lite/cloud-config.yml | bosh -n update-cloud-config -
 ```
 
+## Deploy Kubernetes
 
 ```
 cat <<EOF > ops-files/kubernetes-kubo-0.16.0.yml
@@ -106,12 +113,23 @@ EOF
 ```
 
 ```
+mkdir -p specs
+```
+
+```
+curl -Ls -o specs/storage-provisioner.yml https://github.com/kubernetes/minikube/raw/479ca10c75f6d73a71543627fd1fbe627600f5ec/deploy/addons/storage-provisioner/storage-provisioner.yaml
+curl -Ls -o specs/storageclass.yml https://github.com/kubernetes/minikube/raw/479ca10c75f6d73a71543627fd1fbe627600f5ec/deploy/addons/storageclass/storageclass.yaml
+```
+
+```
 cat <<EOF > deploy-kubernetes.sh
 #!/bin/bash
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
+    -o kubo-deployment/manifests/ops-files/addons-spec.yml \
     -o ops-files/kubernetes-kubo-0.16.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
+    --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_master_host=10.244.1.92 \
     -v kubernetes_worker_hosts='["10.244.1.93"]' \
     --no-redact
@@ -133,6 +151,8 @@ sudo route add -net 10.244.0.0/16 192.168.150.6
 # in case of Linux
 sudo route add -net 10.244.0.0/16 gw 192.168.150.6
 ```
+
+## Access Kubernetes
 
 ```
 cat <<EOF > credhub-login.sh
@@ -182,6 +202,8 @@ monitoring-influxdb is running at https://10.244.1.92:8443/api/v1/namespaces/kub
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
+## Commit project
+
 ```
 cat <<EOF > .gitignore
 *-state.json
@@ -189,4 +211,284 @@ cat <<EOF > .gitignore
 EOF
 git add -A
 git commit -m "deploy CFCR v0.16.0"
+```
+
+## Enable UAA
+
+```
+cat <<EOF > ops-files/kubernetes-uaa.yml
+- type: replace
+  path: /releases/-
+  value:
+    name: uaa
+    version: "57.1"
+    url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=57.1
+    sha1: b96e5965e890d9cdd6ad96890cdaad719c368c31
+- type: replace
+  path: /releases/-
+  value:
+    name: postgres
+    version: 28
+    url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
+    sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
+
+# Add UAA job
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: postgres
+    instances: 1
+    azs: [z1]
+    networks:
+    - name: default
+    stemcell: trusty
+    vm_type: small
+    persistent_disk: 1024
+    jobs:
+    - release: postgres
+      name: postgres
+      properties:
+        databases:
+          databases:
+          - name: uaa
+            tag: uaa
+          db_scheme: postgres
+          port: 5432
+          roles:
+          - name: uaa
+            password: ((uaa_database_password))
+            tag: admin
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: uaa
+    instances: 1
+    networks:
+    - name: default
+      static_ips: [((kubernetes_uaa_host))]
+    azs: [z1,z2,z3]
+    stemcell: trusty
+    vm_type: small
+    jobs:
+    - name: uaa
+      release: uaa
+      properties:
+        encryption:
+          active_key_label: default_key
+          encryption_keys:
+            - label: default_key
+              passphrase: ((uaa_default_encryption_passphrase))
+        login:
+          saml:
+            activeKeyId: key-1
+            keys:
+              key-1:
+                key: "((uaa_login_saml.private_key))"
+                certificate: "((uaa_login_saml.certificate))"
+                passphrase: ""
+        uaa:
+          url: "https://((kubernetes_uaa_host)):8443"
+          catalina_opts: -Djava.security.egd=file:/dev/./urandom
+          sslPrivateKey: ((uaa_ssl.private_key))
+          sslCertificate: ((uaa_ssl.certificate))
+          jwt:
+            revocable: true
+            policy:
+              active_key_id: key-1
+              keys:
+                key-1:
+                  signingKey: "((uaa_jwt_signing_key.private_key))"
+          logging_level: INFO
+          scim:
+            users:
+            - name: admin
+              password: ((uaa_admin_password))
+              groups:
+              - openid
+              - scim.read
+              - scim.write
+          admin:
+            client_secret: "((uaa_admin_client_secret))"
+          login:
+            client_secret: "((uaa_login_client_secret))"
+          clients:
+            kubernetes:
+              override: true
+              authorized-grant-types: password,refresh_token
+              scope: openid
+              authorities: uaa.none
+              access-token-validity: 86400 # 1 day
+              refresh-token-validity: 604800 # 7 days
+              secret: ""
+          zones:
+            internal:
+              hostnames: []
+        login:
+          saml:
+            serviceProviderKey: ((uaa_service_provider_ssl.private_key))
+            serviceProviderKeyPassword: ""
+            serviceProviderCertificate: ((uaa_service_provider_ssl.certificate))
+        uaadb:
+          port: 5432
+          db_scheme: postgresql
+          tls_enabled: false
+          databases:
+          - tag: uaa
+            name: uaa
+          roles:
+          - name: uaa
+            password: ((uaa_database_password))
+            tag: admin
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc?
+  value:
+    issuer-url: "https://((kubernetes_uaa_host)):8443/oauth/token"
+    client-id: kubernetes
+    username-claim: email
+    ca: ((uaa_ssl.ca))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_default_encryption_passphrase
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_jwt_signing_key
+    type: rsa
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_admin_password
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_admin_client_secret
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_login_client_secret
+    type: password
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_ssl
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa.cfcr.internal
+      alternative_names:
+      - ((kubernetes_uaa_host))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_login_saml
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa_login_saml
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_service_provider_ssl
+    type: certificate
+    options:
+      ca: kubo_ca
+      common_name: uaa.cfcr.internal
+      alternative_names:
+      - ((kubernetes_uaa_host))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: uaa_database_password
+    type: password
+EOF
+```
+
+```
+cat <<EOF > specs/uaa-admin.yml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: uaa-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: User
+  name: admin
+EOF
+```
+
+```
+cat <<EOF > deploy-kubernetes.sh
+#!/bin/bash
+bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
+    -o kubo-deployment/manifests/ops-files/addons-spec.yml \
+    -o ops-files/kubernetes-uaa.yml \
+    -o ops-files/kubernetes-kubo-0.16.0.yml \
+    -o ops-files/kubernetes-static-ips.yml \
+    -o ops-files/kubernetes-single-worker.yml \
+    --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
+    -v kubernetes_master_host=10.244.1.92 \
+    -v kubernetes_worker_hosts='["10.244.1.93"]' \
+    -v kubernetes_uaa_host=10.244.1.94 \
+    --no-redact
+EOF
+chmod +x deploy-kubernetes.sh
+```
+
+```
+./credhub-login.sh
+```
+
+## Access with UAA
+
+```
+master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
+
+tmp_ca_file="$(mktemp)"
+bosh int <(credhub get -n "/bosh-lite/cfcr/tls-kubernetes" --output-json) --path=/value/ca > "${tmp_ca_file}"
+
+cluster_name="cfcr"
+user_name="uaa-admin"
+context_name="cfcr-uaa"
+kubectl config set-cluster "${cluster_name}" \
+  --server="https://${master_host}:8443" \
+  --certificate-authority="${tmp_ca_file}" \
+  --embed-certs=true
+
+uaa_url=https://$(bosh -d cfcr vms | grep uaa | awk '{print $4}'):8443
+access_token=`curl -k -s ${uaa_url}/oauth/token \
+  -d grant_type=password \
+  -d response_type=id_token \
+  -d scope=openid \
+  -d client_id=kubernetes \
+  -d client_secret= \
+  -d username=admin \
+  -d password=$(credhub get -n /bosh-lite/cfcr/uaa_admin_password -j | jq -r .value)`
+
+kubectl config set-credentials "${user_name}" \
+  --auth-provider=oidc \
+  --auth-provider-arg=idp-issuer-url=${uaa_url}/oauth/token \
+  --auth-provider-arg=client-id=kubernetes \
+  --auth-provider-arg=client-secret= \
+  --auth-provider-arg=id-token=$(echo $access_token | jq -r .id_token) \
+  --auth-provider-arg=refresh-token=$(echo $access_token | jq -r .refresh_token)
+
+kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
+kubectl config use-context "${context_name}"
 ```
