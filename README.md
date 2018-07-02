@@ -551,3 +551,9 @@ kubectl config use-context "${context_name}"
 git add -A
 git commit -m "add UAA"
 ```
+
+## Delete environment
+
+```
+eval "$(cat deploy-bosh.sh | sed 's/create-env/delete-env/g')"
+```
