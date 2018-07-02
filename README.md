@@ -341,7 +341,7 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
             kubernetes:
               override: true
               authorized-grant-types: password,refresh_token
-              scope: openid
+              scope: openid,roles
               authorities: uaa.none
               access-token-validity: 86400 # 1 day
               refresh-token-validity: 604800 # 7 days
