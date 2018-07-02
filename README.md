@@ -179,9 +179,9 @@ master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
 tmp_ca_file="$(mktemp)"
 credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "${tmp_ca_file}"
 
-cluster_name="cfcr"
+cluster_name="cfcr-lite"
 user_name="admin"
-context_name="cfcr"
+context_name="cfcr-lite"
 
 kubectl config set-cluster "${cluster_name}" \
   --server="https://${master_host}:8443" \
@@ -509,9 +509,9 @@ master_host=$(bosh vms -d cfcr | grep master | awk 'NR==1 {print $4}')
 tmp_ca_file="$(mktemp)"
 credhub get -n /bosh-lite/cfcr/tls-kubernetes | bosh int - --path=/value/ca > "${tmp_ca_file}"
 
-cluster_name="cfcr"
+cluster_name="cfcr-lite"
 user_name="uaa-admin"
-context_name="cfcr-uaa"
+context_name="cfcr-lite-uaa"
 
 kubectl config set-cluster "${cluster_name}" \
   --server="https://${master_host}:8443" \
