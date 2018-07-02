@@ -215,15 +215,13 @@ kubectl proxy
 
 [http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login)
 
-![image](https://user-images.githubusercontent.com/106908/42169975-2f726eaa-7e50-11e8-8cde-61a59ce7f263.png)
-
 Get a token
 
 ```
 kubectl get secrets "$(kubectl get secrets -n kube-system | grep clusterrole-aggregation-controller | awk '{print $1}')" -n kube-system -o json | jq -r .data.token | base64 -D
 ```
 
-![image](https://user-images.githubusercontent.com/106908/39967872-48cbffd4-56fe-11e8-9460-e0a38acbe665.png)
+![image](https://user-images.githubusercontent.com/106908/42169975-2f726eaa-7e50-11e8-8cde-61a59ce7f263.png)
 
 ## Commit project
 
