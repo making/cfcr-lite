@@ -215,7 +215,7 @@ kubectl proxy
 
 [http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login)
 
-![image](https://user-images.githubusercontent.com/106908/39967884-8aeb29d0-56fe-11e8-86df-982150c5f58f.png)
+![image](https://user-images.githubusercontent.com/106908/42169975-2f726eaa-7e50-11e8-8cde-61a59ce7f263.png)
 
 Get a token
 
