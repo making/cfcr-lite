@@ -28,7 +28,7 @@ EOF
 ```
 
 ```
-cat <<EOF > deploy-bosh.sh
+cat <<'EOF' > deploy-bosh.sh
 #!/bin/bash
 bosh create-env bosh-deployment/bosh.yml \
     -o bosh-deployment/virtualbox/cpi.yml \
