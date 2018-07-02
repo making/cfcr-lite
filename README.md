@@ -7,10 +7,10 @@ git init
 git submodule add git@github.com:cloudfoundry/bosh-deployment.git
 git submodule add git@github.com:cloudfoundry-incubator/kubo-deployment.git
 cd kubo-deployment
-git checkout v0.16.0
+git checkout v0.17.0
 cd ..
 git add -A
-git commit -m "import CFCR v0.16.0"
+git commit -m "import CFCR v0.17.0"
 ```
 
 ## Install BOSH Lite on VirtualBox
@@ -80,14 +80,14 @@ curl -sL https://github.com/cloudfoundry/cf-deployment/raw/master/iaas-support/b
 ## Deploy Kubernetes
 
 ```yaml
-cat <<EOF > ops-files/kubernetes-kubo-0.16.0.yml
+cat <<EOF > ops-files/kubernetes-kubo-0.17.0.yml
 - type: replace
   path: /releases/name=kubo?
   value:
     name: kubo
-    version: 0.16.0
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/kubo-release?v=0.16.0
-    sha1: 8a513e48cccdea224c17a92ce73edbda04acee91
+    version: 0.17.0
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/kubo-release?v=0.17.0
+    sha1: 0ab676b9f6f5363377498e93487e8ba31622768e
 EOF
 ```
 
@@ -126,8 +126,9 @@ curl -Ls -o specs/storageclass.yml https://github.com/kubernetes/minikube/raw/47
 cat <<'EOF' > deploy-kubernetes.sh
 #!/bin/bash
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
+    -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
-    -o ops-files/kubernetes-kubo-0.16.0.yml \
+    -o ops-files/kubernetes-kubo-0.17.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
@@ -212,7 +213,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 kubectl proxy
 ```
 
-[http://localhost:8001/ui](http://localhost:8001/ui)
+[http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login)
 
 ![image](https://user-images.githubusercontent.com/106908/39967884-8aeb29d0-56fe-11e8-86df-982150c5f58f.png)
 
@@ -232,7 +233,7 @@ cat <<EOF > .gitignore
 *-creds.yml
 EOF
 git add -A
-git commit -m "deploy CFCR v0.16.0"
+git commit -m "deploy CFCR v0.17.0"
 ```
 
 ## Enable UAA
@@ -476,9 +477,10 @@ EOF
 cat <<'EOF' > deploy-kubernetes.sh
 #!/bin/bash
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
+    -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
     -o ops-files/kubernetes-uaa.yml \
-    -o ops-files/kubernetes-kubo-0.16.0.yml \
+    -o ops-files/kubernetes-kubo-0.17.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
