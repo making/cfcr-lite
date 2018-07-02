@@ -372,7 +372,8 @@ cat <<EOF > ops-files/kubernetes-uaa.yml
   value:
     issuer-url: "https://((kubernetes_uaa_host)):8443/oauth/token"
     client-id: kubernetes
-    username-claim: email
+    username-claim: user_name
+    username-prefix: "-" # noUsernamePrefix
     ca: ((uaa_ssl.ca))
 
 - type: replace
