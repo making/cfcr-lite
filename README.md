@@ -156,7 +156,7 @@ sudo route add -net 10.244.0.0/16 gw 192.168.150.6
 ## Access Kubernetes
 
 ```
-cat <<EOF > credhub-login.sh
+cat <<'EOF' > credhub-login.sh
 #!/bin/bash
 credhub login \
         -s 192.168.150.6:8844 \
@@ -472,7 +472,7 @@ EOF
 ```
 
 ```
-cat <<EOF > deploy-kubernetes.sh
+cat <<'EOF' > deploy-kubernetes.sh
 #!/bin/bash
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
