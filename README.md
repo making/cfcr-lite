@@ -122,7 +122,7 @@ curl -Ls -o specs/storageclass.yml https://github.com/kubernetes/minikube/raw/47
 ```
 
 ```
-cat <<EOF > deploy-kubernetes.sh
+cat <<'EOF' > deploy-kubernetes.sh
 #!/bin/bash
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
