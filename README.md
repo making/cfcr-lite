@@ -148,6 +148,10 @@ bosh -d cfcr run-errand apply-addons
 ```
 
 ```
+bosh -d cfcr run-errand smoke-tests
+```
+
+```
 # in case of Mac
 sudo route add -net 10.244.0.0/16 192.168.150.6
 # in case of Linux
@@ -496,6 +500,10 @@ chmod +x deploy-kubernetes.sh
 
 ```
 bosh -d cfcr run-errand apply-addons
+```
+
+```
+bosh -d cfcr run-errand smoke-tests
 ```
 
 ## Access with UAA
