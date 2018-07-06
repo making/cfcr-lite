@@ -1,0 +1,7 @@
+- type: replace
+  path: /releases/name=kubo?
+  value:
+    name: kubo
+    version: 0.17.0
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/kubo-release?v=0.17.0
+    sha1: 0ab676b9f6f5363377498e93487e8ba31622768e
