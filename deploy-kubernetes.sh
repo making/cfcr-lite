@@ -4,7 +4,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
     -o ops-files/kubernetes-uaa.yml \
-    -o ops-files/kubernetes-kubo-0.17.0.yml \
+    -o ops-files/kubernetes-kubo-0.18.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
     -o ops-files/kubernetes-add-alternative-name.yml \

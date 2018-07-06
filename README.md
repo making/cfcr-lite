@@ -7,10 +7,10 @@ git init
 git submodule add git@github.com:cloudfoundry/bosh-deployment.git
 git submodule add git@github.com:cloudfoundry-incubator/kubo-deployment.git
 cd kubo-deployment
-git checkout v0.17.0
+git checkout v0.18.0
 cd ..
 git add -A
-git commit -m "import CFCR v0.17.0"
+git commit -m "import CFCR v0.18.0"
 ```
 
 ## Install BOSH Lite on VirtualBox
@@ -80,14 +80,14 @@ curl -sL https://github.com/cloudfoundry/cf-deployment/raw/master/iaas-support/b
 ## Deploy Kubernetes
 
 ```yaml
-cat <<EOF > ops-files/kubernetes-kubo-0.17.0.yml
+cat <<EOF > ops-files/kubernetes-kubo-0.18.0.yml
 - type: replace
   path: /releases/name=kubo?
   value:
     name: kubo
-    version: 0.17.0
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/kubo-release?v=0.17.0
-    sha1: 0ab676b9f6f5363377498e93487e8ba31622768e
+    version: 0.18.0
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/kubo-release?v=0.18.0
+    sha1: 23d57c0f5adf7d2bb08410288e5fdef0852160b3
 EOF
 ```
 
@@ -128,7 +128,7 @@ cat <<'EOF' > deploy-kubernetes.sh
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
-    -o ops-files/kubernetes-kubo-0.17.0.yml \
+    -o ops-files/kubernetes-kubo-0.18.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
@@ -231,7 +231,7 @@ cat <<EOF > .gitignore
 *-creds.yml
 EOF
 git add -A
-git commit -m "deploy CFCR v0.17.0"
+git commit -m "deploy CFCR v0.18.0"
 ```
 
 ## Enable UAA
@@ -478,7 +478,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
     -o ops-files/kubernetes-uaa.yml \
-    -o ops-files/kubernetes-kubo-0.17.0.yml \
+    -o ops-files/kubernetes-kubo-0.18.0.yml \
     -o ops-files/kubernetes-static-ips.yml \
     -o ops-files/kubernetes-single-worker.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
